@@ -3,17 +3,18 @@
 # requires-python = ">=3.13"
 # dependencies = []
 # ///
-from dataclasses import dataclass
+import dataclasses
 from pathlib import Path
 import subprocess
 import tomllib
 
 
-@dataclass
+@dataclasses.dataclass
 class RepoConfig:
     borg_repo: str
     borg_passphrase: str
-    target_dir: Path = Path(".")
+    compression: str = "auto,lzma"
+    target_paths: list[Path] = dataclasses.field(default_factory=lambda: [Path(".")])
 
     def env(self):
         return {"BORG_REPO": self.borg_repo, "BORG_PASSPHRASE": self.borg_passphrase}
@@ -22,7 +23,7 @@ class RepoConfig:
 class Config:
     def __init__(self):
         with open("borgwrap.toml", "rb") as f:
-            data: dict[str, list[dict[str, str]]] = tomllib.load(f)
+            data: dict[str, list[dict[str, str | list[Path]]]] = tomllib.load(f)
 
         self.repos: list[RepoConfig] = []
         for repo_data in data["repos"]:
@@ -30,7 +31,11 @@ class Config:
                 repo_data["borg_repo"], repo_data["borg_passphrase"]
             )
             try:
-                repo_config.target_dir = repo_data["target_dir"]
+                repo_config.compression = repo_data["compression"]
+            except KeyError:
+                pass
+            try:
+                repo_config.target_paths = repo_data["target_paths"]
             except KeyError:
                 pass
             self.repos.append(repo_config)
@@ -52,7 +57,7 @@ def main() -> None:
                 "--stats",
                 "--verbose",
                 "::{utcnow}",
-                str(repo_config.target_dir),
+                *repo_config.target_paths,
             ],
             env=env,
         )
