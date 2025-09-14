@@ -3,6 +3,7 @@
 # requires-python = ">=3.13"
 # dependencies = []
 # ///
+import argparse
 import dataclasses
 from pathlib import Path
 import subprocess
@@ -21,8 +22,8 @@ class RepoConfig:
 
 
 class Config:
-    def __init__(self):
-        with open("borgwrap.toml", "rb") as f:
+    def __init__(self, config_path: str):
+        with open(config_path, "rb") as f:
             data: dict[str, list[dict[str, str | list[Path]]]] = tomllib.load(f)
 
         self.repos: list[RepoConfig] = []
@@ -41,8 +42,8 @@ class Config:
             self.repos.append(repo_config)
 
 
-def main() -> None:
-    config = Config()
+def main(config_path: str) -> None:
+    config = Config(config_path)
 
     for repo_config in config.repos:
         env = repo_config.env()
@@ -85,4 +86,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(prog="borgwrap")
+    parser.add_argument("-c", "--config_path", default="borgwrap.toml")
+    args = parser.parse_args()
+
+    main(args.config_path)
