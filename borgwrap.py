@@ -51,7 +51,7 @@ def main(config_path: Path, interactive: bool) -> None:
         try:
             input_text = input("Enter which of the above paths to back up (space-separated numbers or 'all'): ")
         except (EOFError, KeyboardInterrupt):
-            print()
+            sys.stderr.write("\n")
             sys.exit(0)
         if input_text.lower() != "all":
             target_paths = [target_paths[int(index) - 1] for index in input_text.split()]
