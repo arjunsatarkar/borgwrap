@@ -100,8 +100,8 @@ def main(config_path: Path, interactive: bool) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="borgwrap")
-    parser.add_argument("-c", "--config_path", default="borgwrap.toml")
-    parser.add_argument("-i", "--interactive", action="store_true")
+    parser.add_argument("-c", "--config-path", default="borgwrap.toml")
+    parser.add_argument("-a", "--all-repos", action="store_true")
     args = parser.parse_args()
 
-    main(Path(args.config_path).resolve(), args.interactive)
+    main(Path(args.config_path).resolve(), not args.all_repos)
